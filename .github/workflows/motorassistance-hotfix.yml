@@ -1,0 +1,43 @@
+name: Publish MotorAssistance world-entry hotfix
+on:
+  push:
+    paths:
+      - .github/workflows/motorassistance-hotfix.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Patch the existing JAR
+        run: |
+          python MotorAssistance/fix_missing_getter.py \
+            MotorAssistance/motorassistancemod-fabric-1.21.11-pvp.23-unified.jar \
+            MotorAssistance/motorassistancemod-fabric-1.21.11-pvp.23-unified-fixed.jar
+      - name: Validate archive and missing getter resolution
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          p = Path("MotorAssistance/motorassistancemod-fabric-1.21.11-pvp.23-unified-fixed.jar")
+          with ZipFile(p) as z:
+              assert z.testzip() is None
+              service = z.read("dev/gallon/motorassistance/common/services/MotorAssistanceService.class")
+              assert bytes.fromhex("2a b4 00 41 b6 01 1b") not in service
+              assert bytes.fromhex("04 00 00 00 00 00 00 99 00 23") in service
+          print("Archive validated; invalid method invocation removed")
+          PY
+      - name: Commit repaired JAR
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MotorAssistance/motorassistancemod-fabric-1.21.11-pvp.23-unified-fixed.jar
+          git diff --cached --quiet || git commit -m "Publish fixed MotorAssistance unified JAR"
+          git push
