@@ -195,7 +195,11 @@ with TemporaryDirectory() as t:
  subprocess.run(['javac','--release','21','-d',str(classes),*map(str,srcdir.rglob('*.java'))],check=True)
  subprocess.run(['java','-cp',str(classes),'test.ComboSequencerTest'],check=True)
  added={p.relative_to(classes).as_posix():p.read_bytes()
-        for p in classes.glob('dev/gallon/motorassistance/**/*.class')}
+        for p in classes.glob('dev/gallon/motorassistance/**/*.class')
+        if p.relative_to(classes).as_posix() !=
+        'dev/gallon/motorassistance/fabric/config/TheModConfig.class'}
+ # Never package compilation scaffolds: patch the real AutoConfig class instead.
+ assert 'dev/gallon/motorassistance/fabric/config/TheModConfig.class' not in added
  assert len(added)==5,list(added)
  # Modify the already registered AutoConfig class so Mod Menu renders a real
  # persistent boolean switch inside the existing settings screen.
@@ -220,6 +224,15 @@ with TemporaryDirectory() as t:
     old=bytes.fromhex('2a b4 00 41 b6 01 1b')
     assert b.count(old)==1,'Unexpected legacy getter'
     b=b.replace(old,bytes.fromhex('04 00 00 00 00 00 00'),1)
+   elif item.filename in (
+      'assets/motorassistancemod/lang/ja_jp.json',
+      'assets/motorassistancemod/lang/en_us.json'):
+    lang=json.loads(b)
+    label=('7番スロットの右クリック → G → 右クリック マクロを有効にする'
+       if item.filename.endswith('ja_jp.json') else
+       'Enable slot 7 right-click → G → right-click combo')
+    lang['text.autoconfig.motorassistancemod.option.slotSevenRightClickComboEnabled']=label
+    b=json.dumps(lang,ensure_ascii=False,indent=2).encode('utf-8')
    elif item.filename=='motorassistancemod.mixins.json':
     cfg=json.loads(b)
     for n in ('ComboMouseMixin','ComboClientMixin','ComboClientInvoker','ComboKeyboardInvoker'):
