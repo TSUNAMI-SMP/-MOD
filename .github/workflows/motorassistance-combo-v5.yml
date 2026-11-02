@@ -28,7 +28,7 @@ jobs:
               assert all(name in mix["mixins"] for name in ("ComboKeyboardMixin","ComboClientMixin","ComboClientInvoker","ComboKeyboardInvoker"))
               bytecode=z.read("dev/gallon/motorassistance/fabric/combat/ComboSequencer.class")
               assert b"key.motorassistancemod.auto_attack" in bytecode
-              assert b"rightOneNs" in bytecode and b"fNs" in bytecode
+              assert b"firstRightNs" in bytecode and b"gExpectedSlot" in bytecode and b"slotReadyNs" in bytecode
               service=z.read("dev/gallon/motorassistance/common/services/MotorAssistanceService.class")
               assert bytes.fromhex("2a b4 00 41 b6 01 1b") not in service
           print("Pass: archive, mixins, combo logic, simulated slot switching, missing getter.")
