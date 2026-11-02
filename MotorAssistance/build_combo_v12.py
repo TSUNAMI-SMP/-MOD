@@ -27,7 +27,7 @@ with TemporaryDirectory() as temp:
         assert original.testzip() is None
         raw.write_bytes(original.read(target))
 
-    subprocess.run(['javac','--release','21',
+    subprocess.run(['javac',
         '--add-exports','java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED',
         '-d',str(classes),str(patcher)],check=True)
     subprocess.run(['java',
