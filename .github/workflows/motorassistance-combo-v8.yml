@@ -36,6 +36,15 @@ jobs:
               assert b"firstClickNs" in bytecode and b"expectedGSlot" in bytecode and b"field_1752" in bytecode
               config=z.read("dev/gallon/motorassistance/fabric/config/TheModConfig.class")
               assert b"slotSevenRightClickComboEnabled" in config
+              assert b"modConfig" in config
+              assert b"AutoConfig" in bytecode
+              assert "ComboMouseMixin" in mix["mixins"]
+              assert len(mix["mixins"]) == 9
+              ja=json.loads(z.read("assets/motorassistancemod/lang/ja_jp.json"))
+              en=json.loads(z.read("assets/motorassistancemod/lang/en_us.json"))
+              key="text.autoconfig.motorassistancemod.option.slotSevenRightClickComboEnabled"
+              assert key in ja and key in en
+              assert len(z.namelist()) == len(set(z.namelist()))
               service=z.read("dev/gallon/motorassistance/common/services/MotorAssistanceService.class")
               assert bytes.fromhex("2a b4 00 41 b6 01 1b") not in service
           print("Pass: archive, mixins, combo logic, simulated slot switching, missing getter.")
